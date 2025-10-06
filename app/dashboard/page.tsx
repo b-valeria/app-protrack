@@ -1,0 +1,33 @@
+import { redirect } from "next/navigation"
+import { createClient } from "../../lib/supabase/server"
+import Sidebar from "../../components/sidebar"
+import ProductGrid from "../../components/product-grid"
+import SearchBar from "../../components/search-bar"
+
+export default async function DashboardPage() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.getUser()
+  if (error || !data?.user) {
+    redirect("/auth/login")
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", data.user.id).single()
+
+  const { data: products } = await supabase
+    .from("products")
+    .select("*")
+    .eq("user_id", data.user.id)
+    .order("created_at", { ascending: false })
+
+  return (
+    <div className="flex min-h-screen bg-[#f5f5f5]">
+      <Sidebar profile={profile} />
+
+      <main className="flex-1 ml-[280px] p-8">
+        <SearchBar />
+        <ProductGrid products={products || []} />
+      </main>
+    </div>
+  )
+}
