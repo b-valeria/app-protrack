@@ -5,7 +5,12 @@ import { Input } from "./ui/input"
 import { Search, Filter, Grid, Plus } from "lucide-react"
 import Link from "next/link"
 
-export default function SearchBar() {
+interface SearchBarProps {
+  searchQuery: string
+  onSearchChange: (query: string) => void
+}
+
+export default function SearchBar({ searchQuery, onSearchChange }: SearchBarProps) {
   return (
     <div className="flex items-center gap-4 mb-8">
       <div className="relative flex-1 max-w-xl">
@@ -13,6 +18,8 @@ export default function SearchBar() {
         <Input
           type="search"
           placeholder="Buscar productos..."
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
           className="pl-12 h-12 bg-white border-2 border-[#0d2646] rounded-full text-[#0d2646] placeholder:text-gray-500"
         />
       </div>
@@ -42,3 +49,4 @@ export default function SearchBar() {
     </div>
   )
 }
+

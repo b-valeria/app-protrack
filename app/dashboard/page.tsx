@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "../../lib/supabase/server"
 import Sidebar from "../../components/sidebar"
-import ProductGrid from "../../components/product-grid"
-import SearchBar from "../../components/search-bar"
+import DashboardContent from "../../components/dashboard-content"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -25,9 +24,9 @@ export default async function DashboardPage() {
       <Sidebar profile={profile} />
 
       <main className="flex-1 ml-[280px] p-8">
-        <SearchBar />
-        <ProductGrid products={products || []} />
+        <DashboardContent products={products || []} />
       </main>
     </div>
   )
 }
+
