@@ -13,8 +13,8 @@ interface ProfileFormProps {
     nombre: string
     rol: string
     foto_url: string | null
-    telefono: string | null
-    email: string | null
+    telefono: string
+    email: string
   }
   userId: string
 }
@@ -25,6 +25,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(profile.foto_url)
   const [imageFile, setImageFile] = useState<File | null>(null)
+  const [errors, setErrors] = useState<{ email?: string; telefono?: string }>({})
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -36,13 +37,40 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
     }
   }
 
+
+  const validateEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return regex.test(email)
+  }
+
+  const validateTelefono = (telefono: string) => {
+    const regex = /^\+?\d{7,15}$/ 
+    return regex.test(telefono)
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
+    setErrors({}) 
+
+    const formData = new FormData(e.currentTarget)
+    const nombre = formData.get("nombre") as string
+    const rol = formData.get("rol") as string
+    const email = formData.get("email") as string
+    const telefono = formData.get("telefono") as string
+
+ 
+    const newErrors: typeof errors = {}
+    if (!validateEmail(email)) newErrors.email = "Correo inválido"
+    if (!validateTelefono(telefono)) newErrors.telefono = "Teléfono inválido"
+
+    if (Object.keys(newErrors).length > 0) {
+      setIsErrors(newErrors)
+      setIsLoading(false)
+      return
+    }
 
     try {
-      const formData = new FormData(e.currentTarget)
-
       let imageUrl = profile.foto_url
       if (imageFile) {
         const uploadFormData = new FormData()
@@ -59,14 +87,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
         }
       }
 
-      const profileData = {
-        nombre: formData.get("nombre") as string,
-        rol: formData.get("rol") as string,
-        telefono: formData.get("telefono") as string,
-        email: formData.get("email") as string,
-        foto_url: imageUrl,
-      }
-
+      const profileData = { nombre, rol, email, telefono, foto_url: imageUrl }
       const { error } = await supabase.from("profiles").update(profileData).eq("id", userId)
       if (error) throw error
 
@@ -85,13 +106,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
       <div className="flex flex-col items-center mb-6">
         <div className="w-32 h-32 rounded-full border-4 border-[#0d2646] overflow-hidden bg-gray-100 mb-4">
           {imagePreview ? (
-            <Image
-              src={imagePreview}
-              alt="Foto de perfil"
-              width={128}
-              height={128}
-              className="w-full h-full object-cover"
-            />
+            <Image src={imagePreview} alt="Foto de perfil" width={128} height={128} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-[#0d2646]">
               {profile.nombre.charAt(0).toUpperCase()}
@@ -125,8 +140,9 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           defaultValue={profile.email}
           placeholder="ejemplo@correo.com"
           required
-          className="mt-2"
+          className={`mt-2 ${errors.email ? "border-red-500" : ""}`}
         />
+        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
       </div>
 
       <div>
@@ -137,8 +153,9 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           type="tel"
           defaultValue={profile.telefono}
           placeholder="+58 424 1234567"
-          className="mt-2"
+          className={`mt-2 ${errors.telefono ? "border-red-500" : ""}`}
         />
+        {errors.telefono && <p className="text-red-500 text-sm mt-1">{errors.telefono}</p>}
       </div>
 
       <Button type="submit" disabled={isLoading} className="w-full bg-[#0d2646] hover:bg-[#213a55] text-white h-12">
