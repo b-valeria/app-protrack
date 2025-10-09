@@ -1,13 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 
-interface Product {
-  id: string
-  nombre: string
-  imagen_url: string | null
-  cantidad_disponible: number
-  ubicacion: string
-}
+import { Product } from "@/lib/types"
 
 interface ProductGridProps {
   products: Product[]

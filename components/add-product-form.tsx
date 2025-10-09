@@ -59,6 +59,7 @@ export default function AddProductForm({ userId }: AddProductFormProps) {
       const productData = {
         id: formData.get("id") as string,
         nombre: formData.get("nombre") as string,
+        codigo_barras: formData.get("codigo_barras") as string | null,
         ubicacion: formData.get("ubicacion") as string,
         numero_lotes: Number.parseInt(formData.get("numero_lotes") as string),
         tamano_lote: Number.parseInt(formData.get("tamano_lote") as string),
@@ -99,6 +100,11 @@ export default function AddProductForm({ userId }: AddProductFormProps) {
         <div>
           <Label htmlFor="nombre">Nombre del Producto</Label>
           <Input id="nombre" name="nombre" required className="mt-2" />
+        </div>
+
+        <div>
+          <Label htmlFor="codigo_barras">Código de Barras</Label>
+          <Input id="codigo_barras" name="codigo_barras" className="mt-2" />
         </div>
 
         <div>

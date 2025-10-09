@@ -2,7 +2,14 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Edit } from "lucide-react"
+import { Edit, Trash } from "lucide-react"
+import ConfirmDialog from "./ui/confirm-dialog"
+import { useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+
+// Note: createBrowserClient expects env vars to be set; lib/supabase/client.ts exports a helper but importing it here in a client component may be complex, so we create a browser client directly for simplicity.
+
+import { Product as SharedProduct } from "@/lib/types"
 
 interface Product {
   id: string
@@ -38,12 +45,44 @@ interface Transfer {
 }
 
 interface ProductDetailProps {
-  product: Product
+  product: SharedProduct & Product
   movements: Movement[]
   transfers: Transfer[]
 }
 
 export default function ProductDetail({ product, movements, transfers }: ProductDetailProps) {
+  const supabase = createClient()
+  const [isEditing, setIsEditing] = useState(false)
+  const [name, setName] = useState(product.nombre)
+  const [cantidad, setCantidad] = useState<number>(product.cantidad_disponible)
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const { error } = await supabase.from('products').update({ nombre: name, cantidad_disponible: cantidad }).eq('id', product.id)
+      if (error) throw error
+      // optionally, you might want to refresh the page or revalidate
+      setIsEditing(false)
+    } catch (err) {
+      console.error('Update product error', err)
+      alert('Error actualizando el producto')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase.from('products').delete().eq('id', product.id)
+      if (error) throw error
+      // redirect to dashboard after deletion
+      window.location.href = '/dashboard'
+    } catch (err) {
+      console.error('Delete product error', err)
+      alert('Error borrando el producto')
+    }
+  }
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div className="bg-[#0d2646] rounded-3xl p-8 text-white">
@@ -68,6 +107,12 @@ export default function ProductDetail({ product, movements, transfers }: Product
 
         <div className="space-y-3 text-base">
           <p>
+            <span className="font-semibold">Código de Barras:</span> {product['codigo_barras'] ?? '-'}
+          </p>
+          <p>
+            <span className="font-semibold">Última actualización:</span> {product['updated_at'] ? new Date(product['updated_at']).toLocaleString('es-ES') : '—'}
+          </p>
+          <p>
             <span className="font-semibold">Ubicación:</span> {product.ubicacion}
           </p>
           <p>
@@ -91,10 +136,28 @@ export default function ProductDetail({ product, movements, transfers }: Product
           </p>
         </div>
 
-        <Button className="mt-6 w-full bg-white text-[#0d2646] hover:bg-gray-100">
-          <Edit className="w-4 h-4 mr-2" />
-          Editar Producto
-        </Button>
+        <div className="mt-6 flex gap-2">
+          {!isEditing ? (
+            <Button onClick={() => setIsEditing(true)} className="flex-1 bg-white text-[#0d2646] hover:bg-gray-100">
+              <Edit className="w-4 h-4 mr-2" />
+              Editar Producto
+            </Button>
+              ) : (
+            <div className="flex gap-2 w-full">
+              <input value={name} onChange={(e) => setName(e.target.value)} className="flex-1 px-2 py-2 rounded border" />
+              <input type="text" value={product['codigo_barras'] ?? ''} readOnly className="w-44 px-2 py-2 rounded border bg-gray-100" />
+              <input type="number" value={cantidad} onChange={(e) => setCantidad(Number(e.target.value))} className="w-28 px-2 py-2 rounded border" />
+              <Button onClick={handleSave} disabled={saving} className="bg-green-600">{saving ? 'Guardando...' : 'Guardar'}</Button>
+              <Button onClick={() => setIsEditing(false)} className="bg-gray-300 text-black">Cancelar</Button>
+            </div>
+          )}
+
+          <ConfirmDialog title="Borrar producto" description="Esta acción eliminará el producto permanentemente. ¿Deseas continuar?" confirmText="Borrar" onConfirm={handleDelete}>
+            <Button variant="destructive" className="flex items-center gap-2">
+              <Trash className="w-4 h-4" /> Eliminar
+            </Button>
+          </ConfirmDialog>
+        </div>
       </div>
 
       <div className="space-y-6">
