@@ -65,7 +65,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
     if (!validateTelefono(telefono)) newErrors.telefono = "Teléfono inválido"
 
     if (Object.keys(newErrors).length > 0) {
-      setIsErrors(newErrors)
+      setErrors(newErrors)
       setIsLoading(false)
       return
     }
