@@ -25,28 +25,39 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(profile?.foto_url || null)
   const [imageFile, setImageFile] = useState<File | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    console.log("[v0] File selected:", file)
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError("La imagen no puede superar 5MB")
+        return
+      }
+
       setImageFile(file)
+      setError(null)
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result as string)
       }
       reader.readAsDataURL(file)
+      console.log("[v0] Image preview set")
     }
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
     try {
       const formData = new FormData(e.currentTarget)
 
       let imageUrl = profile?.foto_url
       if (imageFile) {
+        console.log("[v0] Uploading image:", imageFile.name)
         const uploadFormData = new FormData()
         uploadFormData.append("file", imageFile)
 
@@ -55,10 +66,17 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           body: uploadFormData,
         })
 
-        if (uploadResponse.ok) {
-          const { url } = await uploadResponse.json()
-          imageUrl = url
+        console.log("[v0] Upload response status:", uploadResponse.status)
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json()
+          console.error("[v0] Upload error:", errorData)
+          throw new Error(errorData.error || "Error al subir la imagen")
         }
+
+        const uploadData = await uploadResponse.json()
+        console.log("[v0] Upload successful:", uploadData)
+        imageUrl = uploadData.url
       }
 
       const profileData = {
@@ -67,15 +85,22 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
         foto_url: imageUrl,
       }
 
-      const { error } = await supabase.from("profiles").update(profileData).eq("id", userId)
+      console.log("[v0] Updating profile:", profileData)
+      const { error: updateError } = await supabase.from("profiles").update(profileData).eq("id", userId)
 
-      if (error) throw error
+      if (updateError) {
+        console.error("[v0] Profile update error:", updateError)
+        throw updateError
+      }
 
+      console.log("[v0] Profile updated successfully")
       router.refresh()
       alert("Perfil actualizado correctamente")
     } catch (error) {
-      console.error("Error al actualizar perfil:", error)
-      alert("Error al actualizar el perfil")
+      console.error("[v0] Error al actualizar perfil:", error)
+      const errorMessage = error instanceof Error ? error.message : "Error al actualizar el perfil"
+      setError(errorMessage)
+      alert(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -83,6 +108,8 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-xl p-8 space-y-6 border-2 border-[#0d2646]">
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
+
       <div className="flex flex-col items-center mb-6">
         <div className="w-32 h-32 rounded-full border-4 border-[#0d2646] overflow-hidden bg-gray-100 mb-4">
           {imagePreview ? (
@@ -105,6 +132,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           </div>
           <Input id="foto" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
         </Label>
+        {imageFile && <p className="text-sm text-gray-600 mt-2">Archivo seleccionado: {imageFile.name}</p>}
       </div>
 
       <div>
