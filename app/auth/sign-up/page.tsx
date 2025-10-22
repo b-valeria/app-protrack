@@ -13,10 +13,42 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([])
   const router = useRouter()
+
+  const validatePassword = (pwd: string): string[] => {
+    const errors: string[] = []
+
+    if (pwd.length < 8) {
+      errors.push("Mínimo 8 caracteres")
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      errors.push("Al menos una letra mayúscula")
+    }
+    if (!/[0-9]/.test(pwd)) {
+      errors.push("Al menos un número")
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
+      errors.push("Al menos un símbolo (!@#$%^&*...)")
+    }
+
+    return errors
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value
+    setPassword(newPassword)
+    setPasswordErrors(validatePassword(newPassword))
+  }
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
+    const errors = validatePassword(password)
+    if (errors.length > 0) {
+      setError("La contraseña no cumple con los requisitos de seguridad")
+      return
+    }
+
     const supabase = createClient()
     setIsLoading(true)
     setError(null)
@@ -103,12 +135,28 @@ export default function SignUpPage() {
                   id="password"
                   type="password"
                   required
-                  minLength={6}
+                  minLength={8}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
-                <p className="mt-1 text-xs text-gray-500">Mínimo 6 caracteres</p>
+                <div className="mt-2 space-y-1">
+                  <p className="text-xs font-medium text-gray-700">La contraseña debe tener:</p>
+                  <ul className="text-xs space-y-1">
+                    <li className={password.length >= 8 ? "text-green-600" : "text-gray-500"}>
+                      {password.length >= 8 ? "✓" : "○"} Mínimo 8 caracteres
+                    </li>
+                    <li className={/[A-Z]/.test(password) ? "text-green-600" : "text-gray-500"}>
+                      {/[A-Z]/.test(password) ? "✓" : "○"} Al menos una letra mayúscula
+                    </li>
+                    <li className={/[0-9]/.test(password) ? "text-green-600" : "text-gray-500"}>
+                      {/[0-9]/.test(password) ? "✓" : "○"} Al menos un número
+                    </li>
+                    <li className={/[!@#$%^&*(),.?":{}|<>]/.test(password) ? "text-green-600" : "text-gray-500"}>
+                      {/[!@#$%^&*(),.?":{}|<>]/.test(password) ? "✓" : "○"} Al menos un símbolo (!@#$%^&*...)
+                    </li>
+                  </ul>
+                </div>
               </div>
 
               {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
@@ -119,7 +167,7 @@ export default function SignUpPage() {
 
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || passwordErrors.length > 0}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
@@ -138,4 +186,3 @@ export default function SignUpPage() {
     </div>
   )
 }
-

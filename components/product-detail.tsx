@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Edit } from "lucide-react"
+import { Edit, Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
 interface Product {
@@ -56,6 +55,7 @@ export default function ProductDetail({ product, movements, transfers }: Product
   const supabase = createClient()
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(product.imagen_url)
   const [imageFile, setImageFile] = useState<File | null>(null)
 
@@ -120,6 +120,28 @@ export default function ProductDetail({ product, movements, transfers }: Product
       alert("Error al actualizar el producto")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm(`¿Estás seguro de que deseas eliminar "${product.nombre}"? Esta acción no se puede deshacer.`)) {
+      return
+    }
+
+    setIsDeleting(true)
+
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", product.id)
+
+      if (error) throw error
+
+      router.push("/dashboard")
+      router.refresh()
+    } catch (error) {
+      console.error("Error al eliminar producto:", error)
+      alert("Error al eliminar el producto. Por favor, intenta de nuevo.")
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -423,11 +445,25 @@ export default function ProductDetail({ product, movements, transfers }: Product
                 variant="outline"
                 onClick={() => setIsEditOpen(false)}
                 className="flex-1"
-                disabled={isLoading}
+                disabled={isLoading || isDeleting}
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isLoading} className="flex-1 bg-[#0d2646] hover:bg-[#213a55] text-white">
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isLoading || isDeleting}
+                className="flex-1"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {isDeleting ? "Eliminando..." : "Eliminar"}
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading || isDeleting}
+                className="flex-1 bg-[#0d2646] hover:bg-[#213a55] text-white"
+              >
                 {isLoading ? "Guardando..." : "Guardar Cambios"}
               </Button>
             </div>

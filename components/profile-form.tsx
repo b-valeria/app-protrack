@@ -15,11 +15,15 @@ interface ProfileFormProps {
     nombre: string
     rol: string
     foto_url: string | null
+    posicion?: string | null
+    email?: string | null
+    telefono?: string | null
   } | null
   userId: string
+  userEmail: string
 }
 
-export default function ProfileForm({ profile, userId }: ProfileFormProps) {
+export default function ProfileForm({ profile, userId, userEmail }: ProfileFormProps) {
   const router = useRouter()
   const supabase = createClient()
   const [isLoading, setIsLoading] = useState(false)
@@ -29,7 +33,6 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    console.log("[v0] File selected:", file)
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         setError("La imagen no puede superar 5MB")
@@ -43,7 +46,6 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
         setImagePreview(reader.result as string)
       }
       reader.readAsDataURL(file)
-      console.log("[v0] Image preview set")
     }
   }
 
@@ -57,7 +59,6 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
 
       let imageUrl = profile?.foto_url
       if (imageFile) {
-        console.log("[v0] Uploading image:", imageFile.name)
         const uploadFormData = new FormData()
         uploadFormData.append("file", imageFile)
 
@@ -66,38 +67,33 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           body: uploadFormData,
         })
 
-        console.log("[v0] Upload response status:", uploadResponse.status)
-
         if (!uploadResponse.ok) {
           const errorData = await uploadResponse.json()
-          console.error("[v0] Upload error:", errorData)
           throw new Error(errorData.error || "Error al subir la imagen")
         }
 
         const uploadData = await uploadResponse.json()
-        console.log("[v0] Upload successful:", uploadData)
         imageUrl = uploadData.url
       }
 
       const profileData = {
         nombre: formData.get("nombre") as string,
         rol: formData.get("rol") as string,
+        posicion: formData.get("posicion") as string,
+        email: userEmail,
+        telefono: formData.get("telefono") as string,
         foto_url: imageUrl,
       }
 
-      console.log("[v0] Updating profile:", profileData)
       const { error: updateError } = await supabase.from("profiles").update(profileData).eq("id", userId)
 
       if (updateError) {
-        console.error("[v0] Profile update error:", updateError)
         throw updateError
       }
 
-      console.log("[v0] Profile updated successfully")
       router.refresh()
       alert("Perfil actualizado correctamente")
     } catch (error) {
-      console.error("[v0] Error al actualizar perfil:", error)
       const errorMessage = error instanceof Error ? error.message : "Error al actualizar el perfil"
       setError(errorMessage)
       alert(errorMessage)
@@ -141,6 +137,36 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
       </div>
 
       <div>
+        <Label htmlFor="posicion">Posición</Label>
+        <Input id="posicion" name="posicion" defaultValue={profile?.posicion || ""} className="mt-2" />
+      </div>
+
+      <div>
+        <Label htmlFor="email">Correo</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          value={userEmail}
+          disabled
+          className="mt-2 bg-gray-100 cursor-not-allowed"
+        />
+        <p className="text-xs text-gray-500 mt-1">El correo no se puede modificar</p>
+      </div>
+
+      <div>
+        <Label htmlFor="telefono">Teléfono</Label>
+        <Input
+          id="telefono"
+          name="telefono"
+          type="tel"
+          defaultValue={profile?.telefono || ""}
+          placeholder="+52 123 456 7890"
+          className="mt-2"
+        />
+      </div>
+
+      <div>
         <Label htmlFor="rol">Rol</Label>
         <Input id="rol" name="rol" defaultValue={profile?.rol} required className="mt-2" />
       </div>
@@ -151,3 +177,4 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
     </form>
   )
 }
+
