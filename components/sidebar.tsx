@@ -28,8 +28,8 @@ export default function Sidebar({ profile }: SidebarProps) {
   return (
     <aside className="fixed left-0 top-0 h-screen w-[280px] bg-[#0d2646] text-white p-6 flex flex-col">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-[#0d2646] rounded"></div>
+        <div className="w-10 h-10 relative">
+          <Image src="/placeholder-logo.png" alt="ProTrack Logo" width={40} height={40} className="object-contain" />
         </div>
         <h1 className="text-2xl font-bold">PROTRACK</h1>
       </div>
@@ -72,15 +72,6 @@ export default function Sidebar({ profile }: SidebarProps) {
 
         <div className="pt-4">
           <p className="text-xs text-gray-400 mb-2 px-3">FILTROS</p>
-          <Button variant="ghost" className="w-full justify-start text-left text-white hover:bg-white/10">
-            Prioridad ▼
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-left text-white hover:bg-white/10">
-            Sede ▼
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-left text-white hover:bg-white/10">
-            Proveedores ▼
-          </Button>
         </div>
       </nav>
 
@@ -90,3 +81,4 @@ export default function Sidebar({ profile }: SidebarProps) {
     </aside>
   )
 }
+
