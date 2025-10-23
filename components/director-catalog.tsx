@@ -1,31 +1,46 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import SearchBar from "./search-bar"
-import ProductGrid from "./product-grid"
+import SearchBar from "@/components/search-bar"
+import ProductGrid from "@/components/product-grid"
 
 interface Product {
   id: string
   nombre: string
-  imagen_url: string | null
-  cantidad_disponible: number
   ubicacion: string
+  numero_lotes: number
+  tamano_lote: number
+  unidades: number
+  cantidad_disponible: number
+  fecha_expiracion: string
+  proveedores: string
   umbral_minimo: number
   umbral_maximo: number
+  entrada: string
+  precio_compra: number
+  total_compra: number
+  imagen_url?: string
+  user_id?: string
+  created_at?: string
+  categoria_abc?: string
+  warehouse_id?: string
 }
 
 interface Warehouse {
   id: string
   nombre: string
+  capacidad_maxima: number
+  company_id: string
 }
 
 interface DirectorCatalogProps {
   products: Product[]
   companyId: string
   warehouses: Warehouse[]
+  userId: string
 }
 
-export default function DirectorCatalog({ products, companyId, warehouses }: DirectorCatalogProps) {
+export default function DirectorCatalog({ products, companyId, warehouses, userId }: DirectorCatalogProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const filteredProducts = useMemo(() => {
@@ -48,6 +63,9 @@ export default function DirectorCatalog({ products, companyId, warehouses }: Dir
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         addProductLink="/dashboard/director/add-product"
+        showImportCSV={true}
+        companyId={companyId}
+        userId={userId}
       />
 
       <ProductGrid products={filteredProducts} />
