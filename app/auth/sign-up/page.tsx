@@ -62,11 +62,28 @@ export default function SignUpPage() {
           emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
           data: {
             nombre: nombre,
+            rol: "Administrador",
           },
         },
       })
 
       if (error) throw error
+
+      // Crear perfil en la tabla profiles
+      if (data.user) {
+        const { error: profileError } = await supabase.from("profiles").upsert({
+          id: data.user.id,
+          nombre: nombre,
+          email: email,
+          rol: "Administrador",
+          posicion: "Administrador",
+        })
+
+        if (profileError) {
+          console.error("[v0] Error al crear perfil:", profileError)
+          throw new Error(`Error al crear perfil: ${profileError.message}`)
+        }
+      }
 
       if (data.user && !data.session) {
         setSuccess("¡Cuenta creada! Por favor revisa tu correo para confirmar tu cuenta.")

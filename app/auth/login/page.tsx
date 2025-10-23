@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-import { createClient } from "../../../lib/supabase/client"
-import { useRouter } from "next/navigation"
+
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -20,12 +21,33 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
-      if (error) throw error
-      router.push("/dashboard")
+
+      if (authError) throw authError
+
+      if (!authData.user) {
+        throw new Error("No se pudo iniciar sesión")
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("rol")
+        .eq("id", authData.user.id)
+        .single()
+
+      if (profileError) {
+        console.error("Error al obtener perfil:", profileError)
+        throw new Error("Error al obtener información del usuario")
+      }
+
+      if (profile?.rol === "Director General") {
+        router.push("/dashboard/director")
+      } else {
+        router.push("/dashboard")
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Ocurrió un error")
     } finally {
@@ -62,9 +84,17 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Contraseña
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Contraseña
+                  </label>
+                  <Link
+                    href="/auth/forgot-password"
+                    className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
                 <input
                   id="password"
                   type="password"
@@ -88,7 +118,7 @@ export default function LoginPage() {
 
             <p className="mt-4 text-center text-sm text-gray-600">
               ¿No tienes cuenta?{" "}
-              <Link href="/auth/sign-up" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 hover:underline">
                 Regístrate
               </Link>
             </p>
