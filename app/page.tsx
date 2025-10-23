@@ -19,12 +19,24 @@ export default function LandingPage() {
           >
             Iniciar Sesión
           </Link>
-          <Link
-            href="/auth/sign-up"
-            className="px-8 py-3 bg-white text-[#2563eb] rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-          >
-            Registrarse
-          </Link>
+          <div className="relative group">
+            <button className="px-8 py-3 bg-white text-[#2563eb] rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+              Registrarse
+            </button>
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+              <Link
+                href="/auth/sign-up/director"
+                className="block px-6 py-4 text-[#2563eb] hover:bg-gray-50 rounded-t-xl border-b border-gray-100"
+              >
+                <div className="font-semibold">Director General</div>
+                <div className="text-sm text-gray-600">Gestiona tu empresa</div>
+              </Link>
+              <Link href="/auth/sign-up" className="block px-6 py-4 text-[#2563eb] hover:bg-gray-50 rounded-b-xl">
+                <div className="font-semibold">Administrador</div>
+                <div className="text-sm text-gray-600">Únete a una empresa</div>
+              </Link>
+            </div>
+          </div>
         </div>
       </header>
 

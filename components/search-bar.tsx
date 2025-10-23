@@ -8,9 +8,14 @@ import Link from "next/link"
 interface SearchBarProps {
   searchQuery: string
   onSearchChange: (query: string) => void
+  addProductLink?: string
 }
 
-export default function SearchBar({ searchQuery, onSearchChange }: SearchBarProps) {
+export default function SearchBar({
+  searchQuery,
+  onSearchChange,
+  addProductLink = "/dashboard/add-product",
+}: SearchBarProps) {
   return (
     <div className="flex items-center gap-4 mb-8">
       <div className="relative flex-1 max-w-xl">
@@ -40,7 +45,7 @@ export default function SearchBar({ searchQuery, onSearchChange }: SearchBarProp
         Crear Categoría
       </Button>
 
-      <Link href="/dashboard/add-product">
+      <Link href={addProductLink}>
         <Button className="h-12 px-6 bg-[#0d2646] text-white rounded-full hover:bg-[#213a55]">
           <Plus className="w-5 h-5 mr-2" />
           Agregar Producto
@@ -49,4 +54,3 @@ export default function SearchBar({ searchQuery, onSearchChange }: SearchBarProp
     </div>
   )
 }
-

@@ -1,6 +1,7 @@
 "use client"
 import Image from "next/image"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 interface Product {
   id: string
@@ -15,6 +16,10 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ products }: ProductGridProps) {
+  const pathname = usePathname()
+  const isDirectorDashboard = pathname?.startsWith("/dashboard/director")
+  const productBaseUrl = isDirectorDashboard ? "/dashboard/director/product" : "/dashboard/product"
+
   if (products.length === 0) {
     return (
       <div className="text-center py-12">
@@ -26,7 +31,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {products.map((product) => (
-        <Link key={product.id} href={`/dashboard/product/${product.id}`}>
+        <Link key={product.id} href={`${productBaseUrl}/${product.id}`}>
           <div className="bg-white border-4 border-[#0d2646] rounded-3xl p-6 hover:shadow-xl transition-shadow cursor-pointer">
             <div className="aspect-square bg-white rounded-2xl flex items-center justify-center mb-4 overflow-hidden">
               {product.imagen_url ? (

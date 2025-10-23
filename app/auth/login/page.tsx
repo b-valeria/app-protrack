@@ -20,12 +20,33 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
-      if (error) throw error
-      router.push("/dashboard")
+
+      if (authError) throw authError
+
+      if (!authData.user) {
+        throw new Error("No se pudo iniciar sesión")
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("rol")
+        .eq("id", authData.user.id)
+        .single()
+
+      if (profileError) {
+        console.error("Error al obtener perfil:", profileError)
+        throw new Error("Error al obtener información del usuario")
+      }
+
+      if (profile?.rol === "Director General") {
+        router.push("/dashboard/director")
+      } else {
+        router.push("/dashboard")
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Ocurrió un error")
     } finally {
