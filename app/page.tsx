@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Instagram, MessageCircle, Music2, Twitter } from "lucide-react"
 
 export default function LandingPage() {
@@ -7,16 +8,7 @@ export default function LandingPage() {
       {/* Header */}
       <header className="container mx-auto px-6 py-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
-            <svg viewBox="0 0 40 40" className="w-8 h-8">
-              <path
-                d="M20 5 L20 20 M20 20 L35 20 M20 20 L20 35 M20 20 L5 20"
-                stroke="#2563eb"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
+          <Image src="/placeholder-logo.png" alt="ProTrack Logo" width={48} height={48} className="object-contain" />
           <span className="text-4xl font-bold">PROTRACK</span>
         </div>
 
@@ -52,20 +44,14 @@ export default function LandingPage() {
           {/* Right Side - Dashboard Preview */}
           <div className="relative">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="aspect-video bg-white/5 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <svg viewBox="0 0 40 40" className="w-12 h-12">
-                      <path
-                        d="M20 5 L20 20 M20 20 L35 20 M20 20 L20 35 M20 20 L5 20"
-                        stroke="white"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-white/80">Vista previa del dashboard</p>
-                </div>
+              <div className="aspect-video bg-white/5 rounded-lg overflow-hidden">
+                <Image
+                  src="/image-dashboard.png"
+                  alt="Vista previa del dashboard"
+                  width={800}
+                  height={450}
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>

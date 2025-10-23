@@ -18,12 +18,7 @@ export default async function ProductDetailPage({
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", data.user.id).single()
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", data.user.id)
-    .single()
+  const { data: product } = await supabase.from("products").select("*").eq("id", id).single()
 
   if (!product) {
     redirect("/dashboard")
@@ -33,14 +28,12 @@ export default async function ProductDetailPage({
     .from("movements")
     .select("*")
     .eq("product_id", id)
-    .eq("user_id", data.user.id)
     .order("fecha_movimiento", { ascending: false })
 
   const { data: transfers } = await supabase
     .from("transfers")
     .select("*")
     .eq("product_id", id)
-    .eq("user_id", data.user.id)
     .order("fecha", { ascending: false })
 
   return (
@@ -53,3 +46,4 @@ export default async function ProductDetailPage({
     </div>
   )
 }
+

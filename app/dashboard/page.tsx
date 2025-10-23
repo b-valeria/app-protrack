@@ -13,11 +13,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", data.user.id).single()
 
-  const { data: products } = await supabase
-    .from("products")
-    .select("*")
-    .eq("user_id", data.user.id)
-    .order("created_at", { ascending: false })
+  const { data: products } = await supabase.from("products").select("*").order("created_at", { ascending: false })
 
   return (
     <div className="flex min-h-screen bg-[#f5f5f5]">
@@ -29,4 +25,5 @@ export default async function DashboardPage() {
     </div>
   )
 }
+
 

@@ -20,9 +20,10 @@ export default async function ProfilePage() {
       <main className="flex-1 ml-[280px] p-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold text-[#0d2646] mb-8">Mi Perfil</h1>
-          <ProfileForm profile={profile} userId={data.user.id} />
+          <ProfileForm profile={profile} userId={data.user.id} userEmail={data.user.email || ""} />
         </div>
       </main>
     </div>
   )
 }
+
