@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +46,24 @@ export default function LoginPage() {
         throw new Error("Error al obtener información del usuario");
       }
 
+      toast({
+        type: "success",
+        title: "Inicio de sesión exitoso",
+        description: "¡Bienvenido de nuevo!",
+      });
+
       if (profile?.rol === "Director General") {
         router.push("/dashboard/director");
       } else {
         router.push("/dashboard");
       }
     } catch (error: unknown) {
+      toast({
+        type: "error",
+        title: "Error al iniciar sesión",
+        description:
+          error instanceof Error ? error.message : "Ocurrió un error",
+      });
       setError(error instanceof Error ? error.message : "Ocurrió un error");
     } finally {
       setIsLoading(false);

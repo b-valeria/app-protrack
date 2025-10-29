@@ -5,7 +5,10 @@ import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/next";
 import { Suspense } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import { Slide, ToastContainer } from "react-toastify";
+import "react-toastify/ReactToastify.css";
 import "./globals.css";
+import { ToastProvider } from "@/components/toast-provider";
 
 export const metadata: Metadata = {
   title: "ProTrack - Sistema de Gestión de Inventario",
@@ -33,6 +36,7 @@ export default function RootLayout({
           {children}
           <Analytics />
         </Suspense>
+        <ToastProvider />
       </body>
     </html>
   );
