@@ -1,40 +1,56 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
-import { ArrowLeft } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
-    setSuccess(false)
+    e.preventDefault();
+    const supabase = createClient();
+    setIsLoading(true);
+    setError(null);
+    setSuccess(false);
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
-      setSuccess(true)
-      setEmail("")
+      toast({
+        type: "success",
+        title: "Correo enviado",
+        description:
+          "Revisa tu bandeja de entrada para restablecer tu contraseña.",
+      });
+
+      setSuccess(true);
+      setEmail("");
     } catch (error: any) {
-      setError(error?.message || "Ocurrió un error al enviar el correo")
+      toast({
+        type: "error",
+        title: "Error al enviar el correo",
+        description:
+          error instanceof Error ? error.message : "Ocurrió un error",
+      });
+
+      setError(error?.message || "Ocurrió un error al enviar el correo");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -49,26 +65,35 @@ export default function ForgotPasswordPage() {
               Volver al inicio de sesión
             </Link>
             <h1 className="text-3xl font-bold text-gray-900">PROTRACK</h1>
-            <p className="mt-2 text-sm text-gray-600">Sistema de Gestión de Inventario</p>
+            <p className="mt-2 text-sm text-gray-600">
+              Sistema de Gestión de Inventario
+            </p>
           </div>
 
           <div className="bg-white py-8 px-6 shadow rounded-lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Recuperar Contraseña</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Recuperar Contraseña
+            </h2>
             <p className="text-sm text-gray-600 mb-6">
-              Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+              Ingresa tu correo electrónico y te enviaremos un enlace para
+              restablecer tu contraseña.
             </p>
 
             {success ? (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
                 <p className="font-medium mb-1">Correo enviado exitosamente</p>
                 <p className="text-sm">
-                  Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.
+                  Revisa tu bandeja de entrada y sigue las instrucciones para
+                  restablecer tu contraseña.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Correo Electrónico
                   </label>
                   <input
@@ -82,7 +107,11 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
 
-                {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    {error}
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -95,7 +124,10 @@ export default function ForgotPasswordPage() {
             )}
 
             <div className="mt-6 text-center">
-              <Link href="/auth/login" className="text-sm text-blue-600 hover:text-blue-700 hover:underline">
+              <Link
+                href="/auth/login"
+                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+              >
                 Volver al inicio de sesión
               </Link>
             </div>
@@ -103,5 +135,5 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

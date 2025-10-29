@@ -1,58 +1,67 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { createClient } from "../lib/supabase/client"
-import { Button } from "./ui/button"
-import { Plus, Download, X } from "lucide-react"
-import { useRouter } from "next/navigation"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "../lib/supabase/client";
+import { Button } from "./ui/button";
+import { Plus, Download, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 interface Movement {
-  id: string
-  product_id: string
-  tipo_movimiento: string
-  unidades: number
-  fecha_movimiento: string
-  precio_venta: number | null
-  ganancia: number | null
+  id: string;
+  product_id: string;
+  tipo_movimiento: string;
+  unidades: number;
+  fecha_movimiento: string;
+  precio_venta: number | null;
+  ganancia: number | null;
 }
 
 interface Transfer {
-  id: string
-  product_id: string
-  sede_origen: string
-  destino: string
-  fecha: string
-  motivo: string
-  encargado: string
+  id: string;
+  product_id: string;
+  sede_origen: string;
+  destino: string;
+  fecha: string;
+  motivo: string;
+  encargado: string;
 }
 
 interface Warehouse {
-  id: string
-  nombre: string
+  id: string;
+  nombre: string;
 }
 
 interface Product {
-  id: string
-  nombre: string
+  id: string;
+  nombre: string;
 }
 
 interface DirectorMovementsProps {
-  companyId: string
-  warehouses: Warehouse[]
+  companyId: string;
+  warehouses: Warehouse[];
 }
 
-export default function DirectorMovements({ companyId, warehouses }: DirectorMovementsProps) {
-  const [movements, setMovements] = useState<Movement[]>([])
-  const [transfers, setTransfers] = useState<Transfer[]>([])
-  const [products, setProducts] = useState<Product[]>([])
-  const [activeView, setActiveView] = useState<"movements" | "transfers">("movements")
-  const [showModal, setShowModal] = useState(false)
-  const [modalType, setModalType] = useState<"movement" | "transfer">("movement")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const supabase = createClient()
-  const router = useRouter()
+export default function DirectorMovements({
+  companyId,
+  warehouses,
+}: DirectorMovementsProps) {
+  const [movements, setMovements] = useState<Movement[]>([]);
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [activeView, setActiveView] = useState<"movements" | "transfers">(
+    "movements"
+  );
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState<"movement" | "transfer">(
+    "movement"
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const [movementForm, setMovementForm] = useState({
     product_id: "",
@@ -61,7 +70,7 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
     fecha_movimiento: new Date().toISOString().split("T")[0],
     precio_venta: "",
     ganancia: "",
-  })
+  });
 
   const [transferForm, setTransferForm] = useState({
     product_id: "",
@@ -70,36 +79,41 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
     fecha: new Date().toISOString().split("T")[0],
     motivo: "",
     encargado: "",
-  })
+  });
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   const loadData = async () => {
     const { data: movementsData } = await supabase
       .from("movements")
       .select("*")
-      .order("fecha_movimiento", { ascending: false })
+      .order("fecha_movimiento", { ascending: false });
 
-    const { data: transfersData } = await supabase.from("transfers").select("*").order("fecha", { ascending: false })
+    const { data: transfersData } = await supabase
+      .from("transfers")
+      .select("*")
+      .order("fecha", { ascending: false });
 
-    const { data: productsData } = await supabase.from("products").select("id, nombre")
+    const { data: productsData } = await supabase
+      .from("products")
+      .select("id, nombre");
 
-    if (movementsData) setMovements(movementsData)
-    if (transfersData) setTransfers(transfersData)
-    if (productsData) setProducts(productsData)
-  }
+    if (movementsData) setMovements(movementsData);
+    if (transfersData) setTransfers(transfersData);
+    if (productsData) setProducts(productsData);
+  };
 
   const handleOpenModal = (type: "movement" | "transfer") => {
-    setModalType(type)
-    setShowModal(true)
-    setError(null)
-  }
+    setModalType(type);
+    setShowModal(true);
+    setError(null);
+  };
 
   const handleCloseModal = () => {
-    setShowModal(false)
-    setError(null)
+    setShowModal(false);
+    setError(null);
     setMovementForm({
       product_id: "",
       tipo_movimiento: "Entrada",
@@ -107,7 +121,7 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
       fecha_movimiento: new Date().toISOString().split("T")[0],
       precio_venta: "",
       ganancia: "",
-    })
+    });
     setTransferForm({
       product_id: "",
       sede_origen: "",
@@ -115,17 +129,17 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
       fecha: new Date().toISOString().split("T")[0],
       motivo: "",
       encargado: "",
-    })
-  }
+    });
+  };
 
   const handleSubmitMovement = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const { data: userData } = await supabase.auth.getUser()
-      if (!userData.user) throw new Error("Usuario no autenticado")
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Usuario no autenticado");
 
       const { data, error: insertError } = await supabase
         .from("movements")
@@ -134,36 +148,45 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
           tipo_movimiento: movementForm.tipo_movimiento,
           unidades: Number.parseInt(movementForm.unidades),
           fecha_movimiento: movementForm.fecha_movimiento,
-          precio_venta: movementForm.precio_venta ? Number.parseFloat(movementForm.precio_venta) : null,
-          ganancia: movementForm.ganancia ? Number.parseFloat(movementForm.ganancia) : null,
+          precio_venta: movementForm.precio_venta
+            ? Number.parseFloat(movementForm.precio_venta)
+            : null,
+          ganancia: movementForm.ganancia
+            ? Number.parseFloat(movementForm.ganancia)
+            : null,
           user_id: userData.user.id,
         })
         .select()
-        .single()
+        .single();
 
-      if (insertError) throw insertError
+      if (insertError) throw insertError;
 
       // Actualizar cantidad disponible del producto
       if (movementForm.tipo_movimiento === "Entrada") {
-        const { error: updateError } = await supabase.rpc("increment_product_quantity", {
-          product_id: movementForm.product_id,
-          quantity: Number.parseInt(movementForm.unidades),
-        })
+        const { error: updateError } = await supabase.rpc(
+          "increment_product_quantity",
+          {
+            product_id: movementForm.product_id,
+            quantity: Number.parseInt(movementForm.unidades),
+          }
+        );
         if (updateError) {
           // Si no existe la función, actualizar manualmente
           const { data: product } = await supabase
             .from("products")
             .select("cantidad_disponible")
             .eq("id", movementForm.product_id)
-            .single()
+            .single();
 
           if (product) {
             await supabase
               .from("products")
               .update({
-                cantidad_disponible: product.cantidad_disponible + Number.parseInt(movementForm.unidades),
+                cantidad_disponible:
+                  product.cantidad_disponible +
+                  Number.parseInt(movementForm.unidades),
               })
-              .eq("id", movementForm.product_id)
+              .eq("id", movementForm.product_id);
           }
         }
       } else if (movementForm.tipo_movimiento === "Salida") {
@@ -171,37 +194,55 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
           .from("products")
           .select("cantidad_disponible")
           .eq("id", movementForm.product_id)
-          .single()
+          .single();
 
         if (product) {
           await supabase
             .from("products")
             .update({
-              cantidad_disponible: Math.max(0, product.cantidad_disponible - Number.parseInt(movementForm.unidades)),
+              cantidad_disponible: Math.max(
+                0,
+                product.cantidad_disponible -
+                  Number.parseInt(movementForm.unidades)
+              ),
             })
-            .eq("id", movementForm.product_id)
+            .eq("id", movementForm.product_id);
         }
       }
 
-      setMovements([data, ...movements])
-      handleCloseModal()
-      router.refresh()
+      setMovements([data, ...movements]);
+      handleCloseModal();
+
+      toast({
+        type: "success",
+        title: "Movimiento registrado",
+        description:
+          "El movimiento de inventario ha sido registrado exitosamente.",
+      });
+
+      router.refresh();
     } catch (error: any) {
-      console.error("[v0] Error al registrar movimiento:", error)
-      setError(error.message || "Ocurrió un error al registrar el movimiento")
+      console.error("[v0] Error al registrar movimiento:", error);
+      setError(error.message || "Ocurrió un error al registrar el movimiento");
+      toast({
+        type: "error",
+        title: "Error",
+        description:
+          error.message || "Ocurrió un error al registrar el movimiento",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSubmitTransfer = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const { data: userData } = await supabase.auth.getUser()
-      if (!userData.user) throw new Error("Usuario no autenticado")
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Usuario no autenticado");
 
       const { data, error: insertError } = await supabase
         .from("transfers")
@@ -215,69 +256,105 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
           user_id: userData.user.id,
         })
         .select()
-        .single()
+        .single();
 
-      if (insertError) throw insertError
+      if (insertError) throw insertError;
 
-      setTransfers([data, ...transfers])
-      handleCloseModal()
-      router.refresh()
+      setTransfers([data, ...transfers]);
+      handleCloseModal();
+
+      toast({
+        type: "success",
+        title: "Transferencia registrada",
+        description:
+          "La transferencia de inventario ha sido registrada exitosamente.",
+      });
+
+      router.refresh();
     } catch (error: any) {
-      console.error("[v0] Error al registrar transferencia:", error)
-      setError(error.message || "Ocurrió un error al registrar la transferencia")
+      console.error("[v0] Error al registrar transferencia:", error);
+      setError(
+        error.message || "Ocurrió un error al registrar la transferencia"
+      );
+
+      toast({
+        type: "error",
+        title: "Error",
+        description:
+          error.message || "Ocurrió un error al registrar la transferencia",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const exportToCSV = () => {
-    const data = activeView === "movements" ? movements : transfers
+    const data = activeView === "movements" ? movements : transfers;
 
     if (data.length === 0) {
-      alert("No hay datos para exportar")
-      return
+      alert("No hay datos para exportar");
+      return;
     }
 
-    const headers = Object.keys(data[0]).join(",")
-    const rows = data.map((row) => Object.values(row).join(","))
-    const csv = [headers, ...rows].join("\n")
+    const headers = Object.keys(data[0]).join(",");
+    const rows = data.map((row) => Object.values(row).join(","));
+    const csv = [headers, ...rows].join("\n");
 
-    const blob = new Blob([csv], { type: "text/csv" })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${activeView}-${new Date().toISOString().split("T")[0]}.csv`
-    a.click()
-    window.URL.revokeObjectURL(url)
-  }
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${activeView}-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Registro de Movimientos</h2>
-          <p className="text-sm text-gray-600 mt-1">Visualiza y registra movimientos de inventario</p>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Registro de Movimientos
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Visualiza y registra movimientos de inventario
+          </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="gap-2 bg-transparent" onClick={exportToCSV}>
+          <Button
+            variant="outline"
+            className="gap-2 bg-transparent"
+            onClick={exportToCSV}
+          >
             <Download className="w-4 h-4" />
             Exportar CSV
           </Button>
           <Button
             className="gap-2"
-            onClick={() => handleOpenModal(activeView === "movements" ? "movement" : "transfer")}
+            onClick={() =>
+              handleOpenModal(
+                activeView === "movements" ? "movement" : "transfer"
+              )
+            }
           >
             <Plus className="w-4 h-4" />
-            Registrar {activeView === "movements" ? "Movimiento" : "Transferencia"}
+            Registrar{" "}
+            {activeView === "movements" ? "Movimiento" : "Transferencia"}
           </Button>
         </div>
       </div>
 
       <div className="flex gap-2">
-        <Button variant={activeView === "movements" ? "default" : "outline"} onClick={() => setActiveView("movements")}>
+        <Button
+          variant={activeView === "movements" ? "default" : "outline"}
+          onClick={() => setActiveView("movements")}
+        >
           Movimientos
         </Button>
-        <Button variant={activeView === "transfers" ? "default" : "outline"} onClick={() => setActiveView("transfers")}>
+        <Button
+          variant={activeView === "transfers" ? "default" : "outline"}
+          onClick={() => setActiveView("transfers")}
+        >
           Transferencias
         </Button>
       </div>
@@ -312,7 +389,8 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
                 {movements.map((movement) => (
                   <tr key={movement.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {products.find((p) => p.id === movement.product_id)?.nombre || movement.product_id}
+                      {products.find((p) => p.id === movement.product_id)
+                        ?.nombre || movement.product_id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <span
@@ -325,12 +403,16 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
                         {movement.tipo_movimiento}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{movement.unidades}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {movement.unidades}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(movement.fecha_movimiento).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {movement.precio_venta ? `$${movement.precio_venta}` : "-"}
+                      {movement.precio_venta
+                        ? `$${movement.precio_venta}`
+                        : "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {movement.ganancia ? `$${movement.ganancia}` : "-"}
@@ -371,15 +453,24 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
                 {transfers.map((transfer) => (
                   <tr key={transfer.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {products.find((p) => p.id === transfer.product_id)?.nombre || transfer.product_id}
+                      {products.find((p) => p.id === transfer.product_id)
+                        ?.nombre || transfer.product_id}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transfer.sede_origen}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transfer.destino}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transfer.sede_origen}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transfer.destino}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(transfer.fecha).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transfer.motivo}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transfer.encargado}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transfer.motivo}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transfer.encargado}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -401,19 +492,31 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">Registrar Movimiento</h3>
-                <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Registrar Movimiento
+                </h3>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
               <form onSubmit={handleSubmitMovement} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Producto *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Producto *
+                  </label>
                   <select
                     required
                     value={movementForm.product_id}
-                    onChange={(e) => setMovementForm({ ...movementForm, product_id: e.target.value })}
+                    onChange={(e) =>
+                      setMovementForm({
+                        ...movementForm,
+                        product_id: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Seleccionar producto</option>
@@ -426,11 +529,18 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Movimiento *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tipo de Movimiento *
+                  </label>
                   <select
                     required
                     value={movementForm.tipo_movimiento}
-                    onChange={(e) => setMovementForm({ ...movementForm, tipo_movimiento: e.target.value })}
+                    onChange={(e) =>
+                      setMovementForm({
+                        ...movementForm,
+                        tipo_movimiento: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Entrada">Entrada</option>
@@ -443,54 +553,91 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Unidades *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Unidades *
+                  </label>
                   <input
                     type="number"
                     required
                     min="1"
                     value={movementForm.unidades}
-                    onChange={(e) => setMovementForm({ ...movementForm, unidades: e.target.value })}
+                    onChange={(e) =>
+                      setMovementForm({
+                        ...movementForm,
+                        unidades: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha *
+                  </label>
                   <input
                     type="date"
                     required
                     value={movementForm.fecha_movimiento}
-                    onChange={(e) => setMovementForm({ ...movementForm, fecha_movimiento: e.target.value })}
+                    onChange={(e) =>
+                      setMovementForm({
+                        ...movementForm,
+                        fecha_movimiento: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Precio de Venta</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Precio de Venta
+                  </label>
                   <input
                     type="number"
                     step="0.01"
                     value={movementForm.precio_venta}
-                    onChange={(e) => setMovementForm({ ...movementForm, precio_venta: e.target.value })}
+                    onChange={(e) =>
+                      setMovementForm({
+                        ...movementForm,
+                        precio_venta: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ganancia</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ganancia
+                  </label>
                   <input
                     type="number"
                     step="0.01"
                     value={movementForm.ganancia}
-                    onChange={(e) => setMovementForm({ ...movementForm, ganancia: e.target.value })}
+                    onChange={(e) =>
+                      setMovementForm({
+                        ...movementForm,
+                        ganancia: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
-                {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    {error}
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={handleCloseModal} className="flex-1 bg-transparent">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCloseModal}
+                    className="flex-1 bg-transparent"
+                  >
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isLoading} className="flex-1">
@@ -509,19 +656,31 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">Registrar Transferencia</h3>
-                <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Registrar Transferencia
+                </h3>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
               <form onSubmit={handleSubmitTransfer} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Producto *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Producto *
+                  </label>
                   <select
                     required
                     value={transferForm.product_id}
-                    onChange={(e) => setTransferForm({ ...transferForm, product_id: e.target.value })}
+                    onChange={(e) =>
+                      setTransferForm({
+                        ...transferForm,
+                        product_id: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Seleccionar producto</option>
@@ -534,11 +693,18 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Sede Origen *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sede Origen *
+                  </label>
                   <select
                     required
                     value={transferForm.sede_origen}
-                    onChange={(e) => setTransferForm({ ...transferForm, sede_origen: e.target.value })}
+                    onChange={(e) =>
+                      setTransferForm({
+                        ...transferForm,
+                        sede_origen: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Seleccionar sede</option>
@@ -551,11 +717,18 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Destino *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Destino *
+                  </label>
                   <select
                     required
                     value={transferForm.destino}
-                    onChange={(e) => setTransferForm({ ...transferForm, destino: e.target.value })}
+                    onChange={(e) =>
+                      setTransferForm({
+                        ...transferForm,
+                        destino: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Seleccionar destino</option>
@@ -568,42 +741,72 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha *
+                  </label>
                   <input
                     type="date"
                     required
                     value={transferForm.fecha}
-                    onChange={(e) => setTransferForm({ ...transferForm, fecha: e.target.value })}
+                    onChange={(e) =>
+                      setTransferForm({
+                        ...transferForm,
+                        fecha: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Motivo *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Motivo *
+                  </label>
                   <input
                     type="text"
                     required
                     value={transferForm.motivo}
-                    onChange={(e) => setTransferForm({ ...transferForm, motivo: e.target.value })}
+                    onChange={(e) =>
+                      setTransferForm({
+                        ...transferForm,
+                        motivo: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Encargado *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Encargado *
+                  </label>
                   <input
                     type="text"
                     required
                     value={transferForm.encargado}
-                    onChange={(e) => setTransferForm({ ...transferForm, encargado: e.target.value })}
+                    onChange={(e) =>
+                      setTransferForm({
+                        ...transferForm,
+                        encargado: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
-                {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    {error}
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={handleCloseModal} className="flex-1 bg-transparent">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCloseModal}
+                    className="flex-1 bg-transparent"
+                  >
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isLoading} className="flex-1">
@@ -616,5 +819,5 @@ export default function DirectorMovements({ companyId, warehouses }: DirectorMov
         </div>
       )}
     </div>
-  )
+  );
 }

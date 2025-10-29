@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "./ui/button";
 import { createClient } from "../lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 interface SidebarProps {
   profile: {
@@ -18,10 +19,16 @@ interface SidebarProps {
 export default function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { toast } = useToast();
   const supabase = createClient();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    toast({
+      type: "success",
+      title: "Sesión cerrada",
+      description: "Has cerrado sesión exitosamente.",
+    });
     router.push("/auth/login");
   };
 

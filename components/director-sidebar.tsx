@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { createClient } from "../lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Package, Users, TrendingUp, Settings } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface DirectorSidebarProps {
   profile: {
@@ -25,10 +26,16 @@ export default function DirectorSidebar({
 }: DirectorSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { toast } = useToast();
   const supabase = createClient();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    toast({
+      type: "success",
+      title: "Sesión cerrada",
+      description: "Has cerrado sesión exitosamente.",
+    });
     router.push("/auth/login");
   };
 
