@@ -1,35 +1,41 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "./ui/button"
-import { createClient } from "../lib/supabase/client"
-import { useRouter } from "next/navigation"
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "./ui/button";
+import { createClient } from "../lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   profile: {
-    nombre: string
-    rol: string
-    foto_url: string | null
-  } | null
+    nombre: string;
+    rol: string;
+    foto_url: string | null;
+  } | null;
 }
 
 export default function Sidebar({ profile }: SidebarProps) {
-  const pathname = usePathname()
-  const router = useRouter()
-  const supabase = createClient()
+  const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/auth/login")
-  }
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+  };
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[280px] bg-[#0d2646] text-white p-6 flex flex-col">
       <div className="flex items-center gap-3 mb-8">
         <div className="w-10 h-10 relative">
-          <Image src="/placeholder-logo.png" alt="ProTrack Logo" width={40} height={40} className="object-contain" />
+          <Image
+            src="/placeholder-logo.png"
+            alt="ProTrack Logo"
+            width={40}
+            height={40}
+            className="object-contain"
+          />
         </div>
         <h1 className="text-2xl font-bold">PROTRACK</h1>
       </div>
@@ -52,8 +58,12 @@ export default function Sidebar({ profile }: SidebarProps) {
             )}
           </div>
           <div className="text-center">
-            <h2 className="text-xl font-bold">{profile?.nombre || "Usuario"}</h2>
-            <p className="text-sm text-gray-300">{profile?.rol || "Administradora"}</p>
+            <h2 className="text-xl font-bold">
+              {profile?.nombre || "Usuario"}
+            </h2>
+            <p className="text-sm text-gray-300">
+              {profile?.rol || "Administradora"}
+            </p>
           </div>
         </div>
       </Link>
@@ -63,7 +73,9 @@ export default function Sidebar({ profile }: SidebarProps) {
           <Button
             variant={pathname === "/dashboard" ? "secondary" : "ghost"}
             className={`w-full justify-start text-left ${
-              pathname === "/dashboard" ? "bg-white text-[#0d2646] hover:bg-white/90" : "text-white hover:bg-white/10"
+              pathname === "/dashboard"
+                ? "bg-white text-[#0d2646] hover:bg-white/90"
+                : "text-white hover:bg-white/10 hover:text-white"
             }`}
           >
             CATÁLOGO
@@ -75,9 +87,13 @@ export default function Sidebar({ profile }: SidebarProps) {
         </div>
       </nav>
 
-      <Button onClick={handleLogout} variant="ghost" className="w-full text-white hover:bg-white/10 mt-4">
+      <Button
+        onClick={handleLogout}
+        variant="ghost"
+        className="w-full text-white hover:bg-white/10 mt-4 hover:text-white"
+      >
         Cerrar Sesión
       </Button>
     </aside>
-  )
+  );
 }
