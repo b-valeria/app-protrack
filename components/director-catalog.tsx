@@ -49,7 +49,7 @@ export default function DirectorCatalog({ products, companyId, warehouses, userI
     }
 
     const query = searchQuery.toLowerCase()
-    return products.filter((product) => product.nombre.toLowerCase().includes(query))
+    return products.filter((product) => product.nombre.toLowerCase().startsWith(query))
   }, [products, searchQuery])
 
   return (
