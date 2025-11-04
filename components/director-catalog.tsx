@@ -55,7 +55,7 @@ export default function DirectorCatalog({
 
     const query = searchQuery.toLowerCase();
     return products.filter((product) =>
-      product.nombre.toLowerCase().includes(query)
+      product.nombre.toLowerCase().startsWith(query)
     );
   }, [products, searchQuery]);
 
